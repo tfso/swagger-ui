@@ -107,7 +107,7 @@
 
 <script language="javascript">
 
-    function readAccesses() {
+    function writeAccesses() {
         let json = JSON.stringify([].concat.apply([], window.swaggerUi.api.apisArray.map(b => b.operationsArray))
             .reduce((ret, value) => {
                 if ((route = ret.find(r => r.path == value.path)) == null)
@@ -159,12 +159,68 @@
         return json;
     }
 
+    function readAccesses(json) {
+        let accesses = [];
+        if (typeof json == 'string' && json.length > 0)
+            accesses = [].concat(JSON.parse(json));
+        
+        window.swaggerUi.api.apisArray.forEach(function (block) {
+            $('#' + block.id + '_endpoint_list').first().css('display', 'block')
+
+            block.operationsArray.forEach(function (operation) {
+
+                let path = '';
+
+                path = operation.path.replace(/\{(\w+)\}/gi, (match, m) => {
+                    let param = operation.parameters.find(p => p.name == m);
+
+                    switch (param.type)
+                    {
+                        case 'integer':
+                            return '2147483647';
+                        case 'number':
+                            return '2147483647.1234';
+                        case 'string':
+                            switch (param.format)
+                            {
+                                case 'date':
+                                    return '2017-06-30';
+                                case 'date-time':
+                                    return '2017-06-30T10:52:30';
+                                default:
+                                    return 'ABCabc012-_';
+                            }
+                    }
+
+                    return 'ABCabc012-_.';
+                })
+
+                $('#' + block.id + '_' + operation.nickname).css('opacity', 0.2);
+                for (let access of accesses)
+                {
+                    if (Array.isArray(access.operations) && access.operations.indexOf(operation.method.toUpperCase()) >= 0)
+                    {
+                        try
+                        {
+                            if (new RegExp(access.path).test(path) == true)
+                                $('#' + block.id + '_' + operation.nickname).css('opacity', 1);
+                        }
+                        catch (ex)
+                        {
+
+                        }
+                    }
+                }
+            })
+
+        })
+    }
+
 </script>
 
 <div class="swagger-ui-wrap" style="padding-top:30px;">
-    <textarea id="textfield-accesses" style="min-width: 960px; max-width: 960px; height: 120px;">
-    </textarea>
-    <button onclick="$('#textfield-accesses').text(readAccesses());">write accesses</button> <button disabled>read accesses</button>
+    <textarea id="textfield-accesses" style="min-width: 960px; max-width: 960px; height: 120px;"></textarea>
+    <button onclick="$('#textfield-accesses').text(writeAccesses());">write accesses</button> <button onclick="readAccesses($('#textfield-accesses').val());">read accesses</button>
 
 
 </div>
