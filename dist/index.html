@@ -137,10 +137,17 @@
                                 case 'date':
                                     return '\d{4}-\d{2}-\d{2}(Z|[+-]\d{2}:\d{2})?';
                                 case 'date-time':
-                                    return '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})?';
+                                    return '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})?';
+                                case 'guid':
+                                case 'uuid':
+                                    return '([0-9A-Fa-f]{8}-(?:[0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12})';
+                                case 'email':
+                                    return '([\w_\-\.]+)@([\w]+\.)+([A-Za-z]{2,4})';
                                 default:
-                                    return '[A-Za-z0-9-_]+';
+                                    return '[\w-\._~]+';
                             }
+                        case 'boolean':
+                            return '([Tt]rue|[Ff]alse)+'
                     }
 
                     return '[^/?]+';
@@ -168,8 +175,8 @@
             $('#' + block.id + '_endpoint_list').first().css('display', 'block')
 
             block.operationsArray.forEach(function (operation) {
-
-                let path = '';
+                let path = '',
+                    host = window.swaggerUi.api.host;
 
                 path = operation.path.replace(/\{(\w+)\}/gi, (match, m) => {
                     let param = operation.parameters.find(p => p.name == m);
@@ -187,6 +194,11 @@
                                     return '2017-06-30';
                                 case 'date-time':
                                     return '2017-06-30T10:52:30';
+                                case 'guid':
+                                case 'uuid':
+                                    return 'f2972f6a-c868-47f7-8294-0ec8abe25430';
+                                case 'email':
+                                    return 'nobody@example.com';
                                 default:
                                     return 'ABCabc012-_';
                             }
@@ -195,21 +207,28 @@
                     return 'ABCabc012-_.';
                 })
 
+                let regex = /([\w-]*?)(-beta|-\d{1,3}b?|\.)([\w-.]*)(?:\/(.*))?$/gi,
+                    parts = regex.exec(host);
+
                 $('#' + block.id + '_' + operation.nickname).css('opacity', 0.2);
                 for (let access of accesses)
                 {
-                    if (Array.isArray(access.operations) && access.operations.indexOf(operation.method.toUpperCase()) >= 0)
-                    {
-                        try
-                        {
-                            if (new RegExp(access.path).test(path) == true)
-                                $('#' + block.id + '_' + operation.nickname).css('opacity', 1);
-                        }
-                        catch (ex)
-                        {
+                    if (access.service != (parts[1] + (parts[2] == '.' ? '.' : '') + parts[3]))
+                        continue;
 
-                        }
+                    if (Array.isArray(access.operations) && access.operations.indexOf(operation.method.toUpperCase()) == -1)
+                        continue;
+
+                    try
+                    {
+                        if (new RegExp(access.path).test(path) == true)
+                            $('#' + block.id + '_' + operation.nickname).css('opacity', 1);
                     }
+                    catch (ex)
+                    {
+                        console.warn('invalid regex; ' + access.path + '; ' + ex.name);
+                    }
+                        
                 }
             })
 
