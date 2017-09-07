@@ -114,7 +114,7 @@
                     ret.push(route = { path: value.path });
 
                 route.methods = (route.methods || []).concat(value.method);
-                route.parameters = value.parameters.filter(p => p.paramType == 'path').map(p => { return { name: p.name, type: p.type } });
+                route.parameters = value.parameters.filter(p => p.paramType == 'path').map(p => { return { name: p.name, type: p.type, format: p.format } });
 
                 return ret;
             }, [])
