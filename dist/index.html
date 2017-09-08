@@ -159,7 +159,7 @@
                 return {
                     service: parts[1] + (parts[2] == '.' ? '.' : '') + parts[3],
                     path: '^' + path + '/?(\\?.+)?$',
-                    operations: route.methods.map(m => m.toUpperCase())
+                    operations: route.methods.reduce((o, t) => { if(o.indexOf(t) == -1) o.push(t); return o }, []).map(m => m.toUpperCase())
                 }
             }), undefined, 4);
 
