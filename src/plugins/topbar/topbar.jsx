@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 
 //import "./topbar.less"
 import Logo from "./logo_small.png"
+import {parseSearch, serializeSearch} from "../../core/utils"
 
 export default class Topbar extends React.Component {
 
@@ -41,6 +42,15 @@ export default class Topbar extends React.Component {
     e.preventDefault()
   }
 
+  setSearch = (spec) => {
+    let search = parseSearch()
+    search["urls.primaryName"] = spec.name
+    const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`
+    if(window && window.history && window.history.pushState) {
+      window.history.replaceState(null, "", `${newUrl}?${serializeSearch(search)}`)
+    }
+  }
+
   setSelectedUrl = (selectedUrl) => {
     const configs = this.props.getConfigs()
     const urls = configs.urls || []
@@ -52,17 +62,19 @@ export default class Topbar extends React.Component {
           if(spec.url === selectedUrl)
             {
               this.setState({selectedIndex: i})
+              this.setSearch(spec)
             }
         })
       }
     }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     const configs = this.props.getConfigs()
     const urls = configs.urls || []
 
     if(urls && urls.length) {
+      this.loadSpec(urls[this.state.selectedIndex].url)
       let primaryName = configs["urls.primaryName"]
       if(primaryName)
       {
@@ -73,14 +85,6 @@ export default class Topbar extends React.Component {
             }
         })
       }
-    }
-  }
-
-  componentDidMount() {
-    const urls = this.props.getConfigs().urls || []
-
-    if(urls && urls.length) {
-      this.loadSpec(urls[this.state.selectedIndex].url)
     }
   }
 
@@ -129,7 +133,7 @@ export default class Topbar extends React.Component {
       <div className="topbar">
         <div className="wrapper">
           <div className="topbar-wrapper">
-            <Link href="#">
+            <Link>
               <img height="30" width="30" src={ Logo } alt="Swagger UI"/>
               <span>swagger</span>
             </Link>

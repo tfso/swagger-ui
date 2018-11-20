@@ -1,14 +1,18 @@
 node_modules
 .idea
+.vscode
 .deps_check
 .DS_Store
 .nyc_output
 npm-debug.log*
 .eslintcache
-package-lock.json
 *.iml
 selenium-debug.log
 test/e2e/db.json
 .vs
 .vscode
 docs/_book
+
+# Cypress
+test/e2e-cypress/screenshots
+test/e2e-cypress/videos
